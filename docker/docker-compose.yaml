@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ../backend
+    container_name: stashbrain-backend
+    environment:
+      - DATABASE_URL=sqlite:///./app.db
+      - SECRET_KEY=changeme123
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ../backend/uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - maildev
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: stashbrain-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+
+  maildev:
+    image: maildev/maildev
+    container_name: stashbrain-maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
